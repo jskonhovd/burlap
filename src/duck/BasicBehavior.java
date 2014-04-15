@@ -20,12 +20,27 @@ import burlap.behavior.singleagent.planning.deterministic.informed.Heuristic;
 import burlap.behavior.singleagent.planning.deterministic.informed.astar.AStar;
 import burlap.behavior.singleagent.planning.deterministic.uninformed.bfs.BFS;
 import burlap.behavior.singleagent.planning.deterministic.uninformed.dfs.DFS;
-import burlap.behavior.singleagent.planning.stochastic.valueiteration.ValueIteration;				
-				
+import burlap.behavior.singleagent.planning.stochastic.valueiteration.ValueIteration;	
+import burlap.oomdp.singleagent.common.VisualActionObserver;
 
-public class BasicBehavior {
+import java.awt.Color;
+import java.util.List;
 
-	
+import burlap.behavior.singleagent.auxiliary.StateReachability;
+import burlap.behavior.singleagent.auxiliary.valuefunctionvis.ValueFunctionVisualizerGUI;
+import burlap.behavior.singleagent.auxiliary.valuefunctionvis.common.ArrowActionGlyph;
+import burlap.behavior.singleagent.auxiliary.valuefunctionvis.common.LandmarkColorBlendInterpolation;
+import burlap.behavior.singleagent.auxiliary.valuefunctionvis.common.PolicyGlyphPainter2D;
+import burlap.behavior.singleagent.auxiliary.valuefunctionvis.common.PolicyGlyphPainter2D.PolicyGlyphRenderStyle;
+import burlap.behavior.singleagent.auxiliary.valuefunctionvis.common.StateValuePainter2D;
+import burlap.oomdp.auxiliary.StateGenerator;
+import burlap.oomdp.auxiliary.common.ConstantStateGenerator;
+import burlap.behavior.singleagent.auxiliary.performance.LearningAlgorithmExperimenter;
+import burlap.behavior.singleagent.auxiliary.performance.PerformanceMetric;
+import burlap.behavior.singleagent.auxiliary.performance.TrialMode;
+
+
+public class BasicBehavior {	
 	
 	GridWorldDomain				gwdg;
 	Domain						domain;
@@ -39,7 +54,7 @@ public class BasicBehavior {
 	public BasicBehavior(){
 		gwdg = new GridWorldDomain(11, 11);
 		gwdg.setMapToFourRooms(); 
-		domain = gwdg.generateDomain();
+		domain =  gwdg.generateDomain();
 		
 		//create the state parser
 		sp = new GridWorldStateParser(domain); 
@@ -59,6 +74,11 @@ public class BasicBehavior {
 		hashingFactory.setAttributesForClass(GridWorldDomain.CLASSAGENT, 
 		domain.getObjectClass(GridWorldDomain.CLASSAGENT).attributeList);
 		
+		VisualActionObserver observer = new VisualActionObserver(domain, 
+				GridWorldVisualizer.getVisualizer(domain, gwdg.getMap()));
+	((SADomain) this.domain).setActionObserverForAllAction(observer);
+	observer.initGUI();
+		
 	}
 	
 	public void visualize(String outputPath){
@@ -66,6 +86,33 @@ public class BasicBehavior {
 		EpisodeSequenceVisualizer evis = new EpisodeSequenceVisualizer(v, domain, sp, outputPath);
 	}
 
+	public void valueFunctionVisualize(QComputablePlanner planner, Policy p){
+		List <State> allStates = StateReachability.getReachableStates(initialState, 
+			(SADomain)domain, hashingFactory);
+		LandmarkColorBlendInterpolation rb = new LandmarkColorBlendInterpolation();
+		rb.addNextLandMark(0., Color.RED);
+		rb.addNextLandMark(1., Color.BLUE);
+		
+		StateValuePainter2D svp = new StateValuePainter2D(rb);
+		svp.setXYAttByObjectClass(GridWorldDomain.CLASSAGENT, GridWorldDomain.ATTX, 
+			GridWorldDomain.CLASSAGENT, GridWorldDomain.ATTY);
+		
+		PolicyGlyphPainter2D spp = new PolicyGlyphPainter2D();
+		spp.setXYAttByObjectClass(GridWorldDomain.CLASSAGENT, GridWorldDomain.ATTX, 
+			GridWorldDomain.CLASSAGENT, GridWorldDomain.ATTY);
+		spp.setActionNameGlyphPainter(GridWorldDomain.ACTIONNORTH, new ArrowActionGlyph(0));
+		spp.setActionNameGlyphPainter(GridWorldDomain.ACTIONSOUTH, new ArrowActionGlyph(1));
+		spp.setActionNameGlyphPainter(GridWorldDomain.ACTIONEAST, new ArrowActionGlyph(2));
+		spp.setActionNameGlyphPainter(GridWorldDomain.ACTIONWEST, new ArrowActionGlyph(3));
+		spp.setRenderStyle(PolicyGlyphRenderStyle.DISTSCALED);
+		
+		ValueFunctionVisualizerGUI gui = new ValueFunctionVisualizerGUI(allStates, svp, planner);
+		gui.setSpp(spp);
+		gui.setPolicy(p);
+		gui.setBgColor(Color.GRAY);
+		gui.initGUI();
+}
+	
 	public void BFSExample(String outputPath){
 		
 		if(!outputPath.endsWith("/")){
@@ -149,7 +196,7 @@ public class BasicBehavior {
 		
 		//create a Q-greedy policy from the planner
 		Policy p = new GreedyQPolicy((QComputablePlanner)planner);
-		
+		this.valueFunctionVisualize((QComputablePlanner)planner, p);	
 		//record the plan results to a file
 		p.evaluateBehavior(initialState, rf, tf).writeToFile(outputPath + "planResult", sp);
 		
@@ -192,6 +239,59 @@ public class BasicBehavior {
 		
 	}
 	
+	public void experimenterAndPlotter(){
+		
+		//custom reward function for more interesting results
+		final RewardFunction rf = new GoalBasedRF(this.goalCondition, 5., -0.1);
+
+		/**
+		 * Create factories for Q-learning agent and SARSA agent to compare
+		 */
+
+		LearningAgentFactory qLearningFactory = new LearningAgentFactory() {
+			
+			@Override
+			public String getAgentName() {
+				return "Q-learning";
+			}
+			
+			@Override
+			public LearningAgent generateAgent() {
+				return new QLearning(domain, rf, tf, 0.99, hashingFactory, 0.3, 0.1);
+			}
+		};
+
+
+		LearningAgentFactory sarsaLearningFactory = new LearningAgentFactory() {
+			
+			@Override
+			public String getAgentName() {
+				return "SARSA";
+			}
+			
+			@Override
+			public LearningAgent generateAgent() {
+				return new SarsaLam(domain, rf, tf, 0.99, hashingFactory, 0.0, 0.1, 1.);
+			}
+		};
+
+		StateGenerator sg = new ConstantStateGenerator(this.initialState);
+
+		LearningAlgorithmExperimenter exp = new LearningAlgorithmExperimenter((SADomain)this.domain, 
+			rf, sg, 10, 100, qLearningFactory, sarsaLearningFactory);
+
+		exp.setUpPlottingConfiguration(500, 250, 2, 1000, 
+			TrialMode.MOSTRECENTANDAVERAGE, 
+			PerformanceMetric.CUMULATIVESTEPSPEREPISODE, 
+			PerformanceMetric.AVERAGEEPISODEREWARD);
+
+		exp.startExperiment();
+
+		exp.writeStepAndEpisodeDataToCSV("expData");
+
+
+	}
+	
 	public static void main(String[] args) {
 	
 		
@@ -203,9 +303,9 @@ public class BasicBehavior {
 		
 		
 		//run example
-		example.SarsaLearningExample(outputPath);
+		example.experimenterAndPlotter();
 		//run the visualizer
-		example.visualize(outputPath);
+		//example.visualize(outputPath);
 		//we'll fill this in later
 	
 	}
