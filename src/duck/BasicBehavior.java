@@ -303,7 +303,7 @@ public class BasicBehavior {
 		
 		
 		//run example
-		example.experimenterAndPlotter();
+		//example.experimenterAndPlotter();
 		//run the visualizer
 		//example.visualize(outputPath);
 		//we'll fill this in later
