@@ -35,7 +35,7 @@ import burlap.behavior.singleagent.auxiliary.valuefunctionvis.common.PolicyGlyph
 import burlap.oomdp.singleagent.common.VisualActionObserver;
 import burlap.oomdp.singleagent.explorer.VisualExplorer;
 
-public class Project3_Gridworld {
+public class Project3_Gridworld2 {
 	GridWorldDomain				gwdg;
 	Domain						domain;
 	StateParser					sp;
@@ -45,9 +45,9 @@ public class Project3_Gridworld {
 	State						initialState;
 	DiscreteStateHashFactory	hashingFactory;
 	
-	public Project3_Gridworld()
+	public Project3_Gridworld2()
 	{
-		gwdg = new GridWorldDomain(11, 11);
+		gwdg = new GridWorldDomain(1000, 1000);
 		//gwdg.setMapToFourRooms(); 
 		gwdg.verticalWall(1, 7, 3);
 		gwdg.verticalWall(0, 2, 1);
@@ -217,7 +217,7 @@ public void experimenterAndPlotter(){
 	
 	public static void main(String[] args)
 	{
-		Project3_Gridworld example = new Project3_Gridworld();
+		Project3_Gridworld2 example = new Project3_Gridworld2();
 		String outputPath = "output/"; 
 		example.PolicyIterationExample(outputPath);
 		example.ValueIterationExample(outputPath);
