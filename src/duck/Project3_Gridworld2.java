@@ -1,6 +1,7 @@
 package duck;
 
 import java.awt.Color;
+import java.util.Date;
 import java.util.List;
 
 import burlap.behavior.singleagent.*;
@@ -47,31 +48,36 @@ public class Project3_Gridworld2 {
 	
 	public Project3_Gridworld2()
 	{
-		gwdg = new GridWorldDomain(1000, 1000);
+		gwdg = new GridWorldDomain(51, 51);
 		//gwdg.setMapToFourRooms(); 
-		gwdg.verticalWall(1, 7, 3);
-		gwdg.verticalWall(0, 2, 1);
-		gwdg.verticalWall(0, 2, 8);
-		gwdg.verticalWall(7, 10, 9);
-		gwdg.horizontalWall(0, 5, 7);
-		gwdg.horizontalWall(7, 9, 6);
-		gwdg.horizontalWall(5, 10, 4);
-		gwdg.horizontalWall(0, 6, 9);
-		gwdg.horizontalWall(1, 3, 4);
+		gwdg.horizontalWall(3, 50, 1);
+		gwdg.verticalWall(3, 50, 1);
+		gwdg.verticalWall(5, 50, 3);
+		gwdg.horizontalWall(5, 50, 3);
+		gwdg.horizontalWall(7, 49, 10);
+		gwdg.horizontalWall(8, 50, 15);
+		gwdg.verticalWall(5, 50, 6);
+		gwdg.verticalWall(25, 50, 25);
+		gwdg.verticalWall(25, 50, 47);
+		gwdg.horizontalWall(8, 25, 25);
+		gwdg.horizontalWall(27, 47, 25);
+		gwdg.horizontalWall(49, 50, 25);
+		gwdg.horizontalWall(27, 47, 35);
+		gwdg.horizontalWall(8, 25, 35);
 		domain =  gwdg.generateDomain();
 		
 		//create the state parser
 		sp = new GridWorldStateParser(domain); 
 		
 		//define the task
-		rf = new UniformCostRF(); 
+		
 		tf = new SinglePFTF(domain.getPropFunction(GridWorldDomain.PFATLOCATION)); 
 		goalCondition = new TFGoalCondition(tf);
-		
+		rf = new GoalBasedRF(this.goalCondition, 50., -0.1);
 		//set up the initial state of the task
 		initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
 		GridWorldDomain.setAgent(initialState, 0, 0);
-		GridWorldDomain.setLocation(initialState, 0, 10, 10);
+		GridWorldDomain.setLocation(initialState, 0, 50, 50);
 		
 	
 
@@ -81,10 +87,10 @@ public class Project3_Gridworld2 {
 		hashingFactory.setAttributesForClass(GridWorldDomain.CLASSAGENT, 
 		domain.getObjectClass(GridWorldDomain.CLASSAGENT).attributeList);
 		
-		VisualActionObserver observer = new VisualActionObserver(domain, 
-				GridWorldVisualizer.getVisualizer(domain, gwdg.getMap()));
-	((SADomain) this.domain).setActionObserverForAllAction(observer);
-	observer.initGUI();
+	//	VisualActionObserver observer = new VisualActionObserver(domain, 
+	//			GridWorldVisualizer.getVisualizer(domain, gwdg.getMap()));
+	//((SADomain) this.domain).setActionObserverForAllAction(observer);
+	//observer.initGUI();
 		
 	}
 	
@@ -102,10 +108,10 @@ public class Project3_Gridworld2 {
 		PolicyGlyphPainter2D spp = new PolicyGlyphPainter2D();
 		spp.setXYAttByObjectClass(GridWorldDomain.CLASSAGENT, GridWorldDomain.ATTX, 
 			GridWorldDomain.CLASSAGENT, GridWorldDomain.ATTY);
-		spp.setActionNameGlyphPainter(GridWorldDomain.ACTIONNORTH, new ArrowActionGlyph(0));
-		spp.setActionNameGlyphPainter(GridWorldDomain.ACTIONSOUTH, new ArrowActionGlyph(1));
-		spp.setActionNameGlyphPainter(GridWorldDomain.ACTIONEAST, new ArrowActionGlyph(2));
-		spp.setActionNameGlyphPainter(GridWorldDomain.ACTIONWEST, new ArrowActionGlyph(3));
+		spp.setActionNameGlyphPainter(GridWorldDomain.ACTIONNORTH, new SmallArrowActionGlyph(0));
+		spp.setActionNameGlyphPainter(GridWorldDomain.ACTIONSOUTH, new SmallArrowActionGlyph(1));
+		spp.setActionNameGlyphPainter(GridWorldDomain.ACTIONEAST, new SmallArrowActionGlyph(2));
+		spp.setActionNameGlyphPainter(GridWorldDomain.ACTIONWEST, new SmallArrowActionGlyph(3));
 		spp.setRenderStyle(PolicyGlyphRenderStyle.DISTSCALED);
 		
 		ValueFunctionVisualizerGUI gui = new ValueFunctionVisualizerGUI(allStates, svp, planner);
@@ -123,7 +129,7 @@ public class Project3_Gridworld2 {
 		
 		
 		OOMDPPlanner planner = new ValueIteration(domain, rf, tf, 0.99, hashingFactory,
-								0.001, 100);
+								0.001, 100000);
 		planner.planFromState(initialState);
 		
 		//create a Q-greedy policy from the planner
@@ -197,7 +203,26 @@ public void experimenterAndPlotter(){
 
 
 	}
+public void QLearningExample(String outputPath){
 	
+	if(!outputPath.endsWith("/")){
+		outputPath = outputPath + "/";
+	}
+	
+	//creating the learning algorithm object; discount= 0.99; initialQ=0.0; learning rate=0.9
+	QLearning agent = new QLearning(domain, rf, tf, 0.99, hashingFactory, 0., 0.9);
+	agent.setMaximumEpisodesForPlanning(100000);
+	agent.setMaxQChangeForPlanningTerminaiton(0.0001);
+	agent.planFromState(initialState);
+	
+	Policy p = new GreedyQPolicy((QComputablePlanner)agent);
+	//run learning for 100 episodes
+	p.evaluateBehavior(initialState, rf, tf).writeToFile(outputPath + "qLearning", sp);
+	this.valueFunctionVisualize((QComputablePlanner)agent, p);
+	
+}				
+
+
 	public void Test()
 	{
 		
@@ -217,11 +242,42 @@ public void experimenterAndPlotter(){
 	
 	public static void main(String[] args)
 	{
-		Project3_Gridworld2 example = new Project3_Gridworld2();
 		String outputPath = "output/"; 
+		
+		
+		mainPITEST(outputPath);
+		//mainVITEST(outputPath);
+		//mainQLearningTEST(outputPath);
+	}
+	
+	static void mainPITEST(String outputPath)
+	{
+		Project3_Gridworld2 example = new Project3_Gridworld2();
+		Date d1 = new Date();
 		example.PolicyIterationExample(outputPath);
+		Date d2 = new Date();
+		long elapsed_time = d2.getTime() - d1.getTime(); 
+		System.out.println("elapsed time " + elapsed_time  + " milliseconds");
+	}
+	
+	static void mainVITEST(String outputPath)
+	{
+		Project3_Gridworld2 example = new Project3_Gridworld2();
+		Date d1 = new Date();
 		example.ValueIterationExample(outputPath);
-		example.experimenterAndPlotter();
+		Date d2 = new Date();
+		long elapsed_time = d2.getTime() - d1.getTime(); 
+		System.out.println("elapsed time " + elapsed_time  + " milliseconds");
+	}
+	
+	static void mainQLearningTEST(String outputPath)
+	{
+		Project3_Gridworld2 example = new Project3_Gridworld2();
+		Date d1 = new Date();
+		example.QLearningExample(outputPath);
+		Date d2 = new Date();
+		long elapsed_time = d2.getTime() - d1.getTime(); 
+		System.out.println("elapsed time " + elapsed_time  + " milliseconds");
 	}
 	
 }

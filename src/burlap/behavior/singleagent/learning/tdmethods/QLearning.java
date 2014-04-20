@@ -435,7 +435,7 @@ public class QLearning extends OOMDPPlanner implements QComputablePlanner, Learn
 			this.runLearningEpisodeFrom(initialState);
 			eCount++;
 		}while(eCount < numEpisodesForPlanning && maxQChangeInLastEpisode > maxQChangeForPlanningTermination);
-		
+		System.out.println(eCount);
 
 	}
 

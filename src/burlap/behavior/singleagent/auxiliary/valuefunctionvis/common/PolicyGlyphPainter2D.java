@@ -274,7 +274,7 @@ public class PolicyGlyphPainter2D implements StatePolicyPainter {
 			
 		}
 		
-		if(this.renderStyle != PolicyGlyphRenderStyle.DISTSCALED){
+		if(true){
 			if(this.renderStyle == PolicyGlyphRenderStyle.MAXACTIONSOFTTIE){
 				maxp -= this.softTieDelta;
 			}

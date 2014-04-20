@@ -1,6 +1,7 @@
 package duck;
 
 import java.awt.Color;
+import java.util.Date;
 import java.util.List;
 
 import burlap.behavior.singleagent.*;
@@ -64,9 +65,10 @@ public class Project3_Gridworld {
 		sp = new GridWorldStateParser(domain); 
 		
 		//define the task
-		rf = new UniformCostRF(); 
+		
 		tf = new SinglePFTF(domain.getPropFunction(GridWorldDomain.PFATLOCATION)); 
 		goalCondition = new TFGoalCondition(tf);
+		rf = new GoalBasedRF(this.goalCondition, 5., -0.1);
 		
 		//set up the initial state of the task
 		initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
@@ -81,11 +83,11 @@ public class Project3_Gridworld {
 		hashingFactory.setAttributesForClass(GridWorldDomain.CLASSAGENT, 
 		domain.getObjectClass(GridWorldDomain.CLASSAGENT).attributeList);
 		
-		VisualActionObserver observer = new VisualActionObserver(domain, 
+		/*VisualActionObserver observer = new VisualActionObserver(domain, 
 				GridWorldVisualizer.getVisualizer(domain, gwdg.getMap()));
 	((SADomain) this.domain).setActionObserverForAllAction(observer);
 	observer.initGUI();
-		
+		*/
 	}
 	
 	public void valueFunctionVisualize(QComputablePlanner planner, Policy p){
@@ -137,6 +139,26 @@ public class Project3_Gridworld {
 		
 	}
 	
+	public void QLearningExample(String outputPath){
+		
+		if(!outputPath.endsWith("/")){
+			outputPath = outputPath + "/";
+		}
+		
+		//creating the learning algorithm object; discount= 0.99; initialQ=0.0; learning rate=0.9
+		QLearning agent = new QLearning(domain, rf, tf, 0.99, hashingFactory, 0., 0.9);
+		agent.setMaximumEpisodesForPlanning(100000);
+		agent.setMaxQChangeForPlanningTerminaiton(0.0001);
+		agent.planFromState(initialState);
+		
+		Policy p = new GreedyQPolicy((QComputablePlanner)agent);
+		//run learning for 100 episodes
+		p.evaluateBehavior(initialState, rf, tf).writeToFile(outputPath + "qLearning", sp);
+		this.valueFunctionVisualize((QComputablePlanner)agent, p);
+		
+	}				
+
+	
 	public void PolicyIterationExample(String outputPath)
 	{
 		if(!outputPath.endsWith("/")){
@@ -159,7 +181,7 @@ public class Project3_Gridworld {
 		
 	}
 	
-public void experimenterAndPlotter(){
+	public void experimenterAndPlotter(){
 		
 		//custom reward function for more interesting results
 		final RewardFunction rf = new GoalBasedRF(this.goalCondition, 5., -0.1);
@@ -217,11 +239,44 @@ public void experimenterAndPlotter(){
 	
 	public static void main(String[] args)
 	{
-		Project3_Gridworld example = new Project3_Gridworld();
+		
 		String outputPath = "output/"; 
-		example.PolicyIterationExample(outputPath);
-		example.ValueIterationExample(outputPath);
-		example.experimenterAndPlotter();
+		
+	
+		mainPITEST(outputPath);
+		mainVITEST(outputPath);
+		mainQLearningTEST(outputPath);
 	}
+	
+	static void mainPITEST(String outputPath)
+	{
+		Project3_Gridworld example = new Project3_Gridworld();
+		Date d1 = new Date();
+		example.PolicyIterationExample(outputPath);
+		Date d2 = new Date();
+		long elapsed_time = d2.getTime() - d1.getTime(); 
+		System.out.println("elapsed time " + elapsed_time  + " milliseconds");
+	}
+	
+	static void mainVITEST(String outputPath)
+	{
+		Project3_Gridworld example = new Project3_Gridworld();
+		Date d1 = new Date();
+		example.ValueIterationExample(outputPath);
+		Date d2 = new Date();
+		long elapsed_time = d2.getTime() - d1.getTime(); 
+		System.out.println("elapsed time " + elapsed_time  + " milliseconds");
+	}
+	
+	static void mainQLearningTEST(String outputPath)
+	{
+		Project3_Gridworld example = new Project3_Gridworld();
+		Date d1 = new Date();
+		example.QLearningExample(outputPath);
+		Date d2 = new Date();
+		long elapsed_time = d2.getTime() - d1.getTime(); 
+		System.out.println("elapsed time " + elapsed_time  + " milliseconds");
+	}
+	
 	
 }
