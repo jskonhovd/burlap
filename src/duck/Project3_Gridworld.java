@@ -239,11 +239,8 @@ public class Project3_Gridworld {
 	}
 	
 	public static void main(String[] args)
-	{
-		
-		String outputPath = "output/"; 
-		
-	
+	{	
+		String outputPath = "output/"; 	
 		mainPITEST(outputPath);
 		mainVITEST(outputPath);
 		mainQLearningTEST(outputPath);

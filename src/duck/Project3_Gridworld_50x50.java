@@ -36,7 +36,7 @@ import burlap.behavior.singleagent.auxiliary.valuefunctionvis.common.PolicyGlyph
 import burlap.oomdp.singleagent.common.VisualActionObserver;
 import burlap.oomdp.singleagent.explorer.VisualExplorer;
 
-public class Project3_Gridworld2 {
+public class Project3_Gridworld_50x50 {
 	GridWorldDomain				gwdg;
 	Domain						domain;
 	StateParser					sp;
@@ -46,7 +46,7 @@ public class Project3_Gridworld2 {
 	State						initialState;
 	DiscreteStateHashFactory	hashingFactory;
 	
-	public Project3_Gridworld2()
+	public Project3_Gridworld_50x50()
 	{
 		gwdg = new GridWorldDomain(51, 51);
 		//gwdg.setMapToFourRooms(); 
@@ -244,7 +244,6 @@ public void QLearningExample(String outputPath){
 	{
 		String outputPath = "output/"; 
 		
-		
 		mainPITEST(outputPath);
 		mainVITEST(outputPath);
 		mainQLearningTEST(outputPath);
@@ -252,7 +251,7 @@ public void QLearningExample(String outputPath){
 	
 	static void mainPITEST(String outputPath)
 	{
-		Project3_Gridworld2 example = new Project3_Gridworld2();
+		Project3_Gridworld_50x50 example = new Project3_Gridworld_50x50();
 		Date d1 = new Date();
 		example.PolicyIterationExample(outputPath);
 		Date d2 = new Date();
@@ -262,7 +261,7 @@ public void QLearningExample(String outputPath){
 	
 	static void mainVITEST(String outputPath)
 	{
-		Project3_Gridworld2 example = new Project3_Gridworld2();
+		Project3_Gridworld_50x50 example = new Project3_Gridworld_50x50();
 		Date d1 = new Date();
 		example.ValueIterationExample(outputPath);
 		Date d2 = new Date();
@@ -272,7 +271,7 @@ public void QLearningExample(String outputPath){
 	
 	static void mainQLearningTEST(String outputPath)
 	{
-		Project3_Gridworld2 example = new Project3_Gridworld2();
+		Project3_Gridworld_50x50 example = new Project3_Gridworld_50x50();
 		Date d1 = new Date();
 		example.QLearningExample(outputPath);
 		Date d2 = new Date();
