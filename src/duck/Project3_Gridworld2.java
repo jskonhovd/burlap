@@ -101,7 +101,7 @@ public class Project3_Gridworld2 {
 		rb.addNextLandMark(0., Color.RED);
 		rb.addNextLandMark(1., Color.BLUE);
 		
-		StateValuePainter2D svp = new StateValuePainter2D(rb);
+		StateValuePainter2D svp = new MyStateValuePainter2D(rb);
 		svp.setXYAttByObjectClass(GridWorldDomain.CLASSAGENT, GridWorldDomain.ATTX, 
 			GridWorldDomain.CLASSAGENT, GridWorldDomain.ATTY);
 		
@@ -210,7 +210,7 @@ public void QLearningExample(String outputPath){
 	}
 	
 	//creating the learning algorithm object; discount= 0.99; initialQ=0.0; learning rate=0.9
-	QLearning agent = new QLearning(domain, rf, tf, 0.99, hashingFactory, 0., 0.9);
+	QLearning agent = new QLearning(domain, rf, tf, 0.95, hashingFactory, 0., 0.9);
 	agent.setMaximumEpisodesForPlanning(100000);
 	agent.setMaxQChangeForPlanningTerminaiton(0.0001);
 	agent.planFromState(initialState);
@@ -246,8 +246,8 @@ public void QLearningExample(String outputPath){
 		
 		
 		mainPITEST(outputPath);
-		//mainVITEST(outputPath);
-		//mainQLearningTEST(outputPath);
+		mainVITEST(outputPath);
+		mainQLearningTEST(outputPath);
 	}
 	
 	static void mainPITEST(String outputPath)

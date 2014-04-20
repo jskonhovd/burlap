@@ -66,16 +66,16 @@ public class Project3_Gridworld {
 		
 		//define the task
 		
-		tf = new SinglePFTF(domain.getPropFunction(GridWorldDomain.PFATLOCATION)); 
-		goalCondition = new TFGoalCondition(tf);
-		rf = new GoalBasedRF(this.goalCondition, 5., -0.1);
+	
 		
 		//set up the initial state of the task
 		initialState = GridWorldDomain.getOneAgentOneLocationState(domain);
 		GridWorldDomain.setAgent(initialState, 0, 0);
 		GridWorldDomain.setLocation(initialState, 0, 10, 10);
 		
-	
+		tf = new SinglePFTF(domain.getPropFunction(GridWorldDomain.PFATLOCATION)); 
+		goalCondition = new TFGoalCondition(tf);
+		rf = new GoalBasedRF(this.goalCondition, 5., -0.1);
 
 			
 		//set up the state hashing system
@@ -97,7 +97,7 @@ public class Project3_Gridworld {
 		rb.addNextLandMark(0., Color.RED);
 		rb.addNextLandMark(1., Color.BLUE);
 		
-		StateValuePainter2D svp = new StateValuePainter2D(rb);
+		StateValuePainter2D svp = new MyStateValuePainter2D(rb);
 		svp.setXYAttByObjectClass(GridWorldDomain.CLASSAGENT, GridWorldDomain.ATTX, 
 			GridWorldDomain.CLASSAGENT, GridWorldDomain.ATTY);
 		
@@ -145,8 +145,9 @@ public class Project3_Gridworld {
 			outputPath = outputPath + "/";
 		}
 		
-		//creating the learning algorithm object; discount= 0.99; initialQ=0.0; learning rate=0.9
-		QLearning agent = new QLearning(domain, rf, tf, 0.99, hashingFactory, 0., 0.9);
+		//Test1:creating the learning algorithm object; discount= 0.99; initialQ=0.0; learning rate=0.9
+		//Test2:creating the learning algorithm object; discount= 0.99; initialQ=0.0; learning rate=0.5
+		QLearning agent = new QLearning(domain, rf, tf, 0.85, hashingFactory, 0., 0.9);
 		agent.setMaximumEpisodesForPlanning(100000);
 		agent.setMaxQChangeForPlanningTerminaiton(0.0001);
 		agent.planFromState(initialState);
